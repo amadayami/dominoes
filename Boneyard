@@ -1,0 +1,60 @@
+import java.util.ArrayList;
+import java.util.List;
+import java.util.*;
+
+public class Boneyard{
+    //holds the dominoes not in the board or a hand
+    private List<Domino> boneyardDom = new ArrayList<>();
+
+    /**
+     * Constructor for the Boneyard object
+     * Created at time of Board creation, holds
+     * remaining dominoes after distribution
+     */
+    public Boneyard(){
+
+    }
+
+    /**
+     * Iterates over the given list and adds each
+     * Domino to the boneyard set
+     * @param remaining a list of the dominoes in the
+     * current set that were not distributed to the
+     * human or the computer
+     */
+    protected void addDominoes(List<Domino> remaining){
+        Iterator<Domino> iter = remaining.iterator();
+        while(iter.hasNext()){
+            boneyardDom.add(iter.next());
+        }
+    }
+
+    /**
+     * Uses Random to choose the index of a random tile
+     * in the boneyard set. Then removes it from the
+     * array and sends the domino object to be added
+     * to the current player hand
+     * @return domino to be removed from Boneyard,
+     * then will be added to the player hand
+     */
+    protected Domino removeDomino(){
+        /*
+        removes a random domino from the set
+        */
+        int length = boneyardDom.size();
+        Random random = new Random();
+        int rand = random.nextInt(length);
+        Domino send = boneyardDom.get(rand);
+        boneyardDom.remove(rand);
+        return send;
+    }
+
+    /**
+     * Retrieves the number of dominoes currently
+     * held in the boneyard
+     * @return size of the boneyard array
+     */
+    public int getCurrDominoes(){
+        return boneyardDom.size();
+    }
+}

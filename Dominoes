@@ -1,0 +1,18 @@
+public class Dominoes{
+
+    /**
+     * Creates a new game object and prints out the basic
+     * information at the beginning of the game. Then calls
+     * the human for their turn
+     * @param args ignore
+     */
+    public static void main(String[] args){
+        System.out.println("Welcome to Dominoes!");
+        Game current = new Game();
+        int dC = current.playingArea.computer.getNumTiles();
+        int dB = current.playingArea.boneyard.getCurrDominoes();
+        System.out.println("Computer has " + dC + " dominoes");
+        System.out.println("Boneyard has " + dB + " dominoes");
+        current.humanTurn();
+    }
+}

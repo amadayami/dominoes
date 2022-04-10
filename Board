@@ -1,0 +1,169 @@
+import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Random;
+import java.util.Deque;
+
+public class Board{
+
+    //the highest possible number on a domino
+    private int MAX_TILE = 6;
+    //holds the initially created dominoes
+    private List<Domino> domSet = new ArrayList<>();
+    private int currDominoes;
+
+    //the dominoes currently in the playing area
+    private Deque<Domino> activeSet = new ArrayDeque();
+
+    protected Boneyard boneyard;
+    protected Player human;
+    protected Player computer;
+
+    //constructor for board object
+    public Board(){
+        this.boneyard = new Boneyard();
+        this.human = new Player();
+        this.computer = new Player();
+
+        createDominoSet();
+    }
+
+    /**
+     * Uses a pair of nested loops to create the
+     * initial set of dominoes. The j represents the
+     * right number on the domino and is incremented
+     * from i, the value on the left, in order to avoid
+     * repetition of dominos.
+     * Then the randomizeHands method is called to
+     * distribute dominoes into hands
+     */
+    private void createDominoSet(){
+        for(int i = 0; i <= MAX_TILE; i++){
+            for(int j = i; j <= MAX_TILE; j++){
+                createDomino(i, j);
+            }
+        }
+        randomizeHands();
+    }
+
+    /**
+     * Creates a new domino with the given left and right values,
+     * then adds it to the set of overall dominoes and increments
+     * the number of dominoes being used in the game
+     * @param left the value on the left side of the new domino
+     * @param right the value on the right side of the new domino
+     */
+    private void createDomino(int left, int right){
+        Domino tile = new Domino(left, right);
+        domSet.add(tile);
+        currDominoes++;
+    }
+
+    /**
+     * Alternates the human and computer hands and pulls
+     * seven tiles for each of them from the full set.
+     * The tiles remaining in the set are then added to
+     * the Boneyard.
+     */
+    private void randomizeHands(){
+        Random random = new Random();
+        int playerTurn = 0;
+        int rand;
+        while(human.getNumTiles() < 7 && computer.getNumTiles() < 7){
+            rand = random.nextInt(currDominoes);
+            if(playerTurn == 0){
+                //human player add
+                Domino getDom = domSet.get(rand);
+                this.human.addDomino(getDom);
+                domSet.remove(getDom);
+                playerTurn = 0;
+            }
+            else if(playerTurn == 1){
+                //computer player add
+                Domino getDom = domSet.get(rand);
+                this.computer.addDomino(getDom);
+                playerTurn = 1;
+            }
+        }
+        this.boneyard.addDominoes(domSet);
+    }
+
+    /**
+     * A Domino is passed to the method and added to the set
+     * of active tiles based on the selected side.
+     * @param addition the Domino being added to the board deque
+     * @param side the side where the Domino is being added
+     */
+    public void addDomino(Domino addition, String side){
+        /*
+        left: domino is added to the beginning of the deque
+        right: domino is added to the end of the deque
+        first: no other dominos on the field, so the standard
+        add method can be used
+         */
+        if(side.equals("left")){
+            activeSet.addFirst(addition);
+        }
+        else if(side.equals("right")){
+            activeSet.addLast(addition);
+        }
+        else if(side.equals("first")){
+            activeSet.add(addition);
+        }
+        else{
+            System.out.println("Something's wrong here");
+        }
+    }
+
+    /**
+     * Finds the number of dominoes currently
+     * active on the board
+     * @return size of the array holding the
+     * active dominoes
+     */
+    public int activeDominoes(){
+        return activeSet.size();
+    }
+
+    public String toStringBoard(){
+        String first = "";
+        String last = "  ";
+        Domino[] board = activeSet.toArray(new Domino[activeSet.size()]);
+        for(int i = 0; i < activeSet.size(); i++){
+            if((i%2) == 0){
+                String add = board[i].dToString();
+                first = first + add;
+            }
+            else{
+                String add = board[i].dToString();
+                last = last + add;
+            }
+        }
+        String together = first + "\n" + last;
+        return together;
+    }
+
+    /**
+     * Retrieves the number on the left side
+     * domino for checking against the desired
+     * domino to be played
+     * @return int value on the left side of
+     * the active board
+     */
+    public int getLeft(){
+        Domino left = activeSet.getFirst();
+        return left.getLeftNum();
+    }
+
+    /**
+     * Retrieves the number on the right side
+     * domino for checking against the
+     * desired domino to be played
+     * @return int value on the right side of
+     * the active board
+     */
+    public int getRight(){
+        Domino right = activeSet.getLast();
+        return right.getRightNum();
+    }
+}

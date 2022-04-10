@@ -1,0 +1,80 @@
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+
+public class Player{
+
+    //check this, not getting any error messages :/
+    //brooke says to use generic types for hands and stuff
+    //should apply this to boneyard as well, so check
+    protected List<Domino> playerHand = new ArrayList<>();
+    /*
+    this will be the outline for the human and computer
+    then the hand will be within the player object
+    as a list since we can hold the add and remove methods
+    within this space
+     */
+
+    /**
+     * Adds the domino object to the list representing the player's hand
+     * and then increments the number of dominoes in the hand for checks
+     * @param addition domino to be added to the player hand
+     */
+    public void addDomino(Domino addition){
+        this.playerHand.add(addition);
+    }
+
+    public void removeDomino(int index){
+        this.playerHand.remove(index);
+    }
+
+    /**
+     * Takes in the dominoes in the player hand and
+     * creates a string representation
+     * @return String representation of the player hand
+     */
+    public String handToString(){
+        String hand = "";
+        Iterator<Domino> iter = playerHand.iterator();
+        while(iter.hasNext()){
+            hand = hand + iter.next().dToString();
+        }
+        return hand;
+    }
+
+    /**
+     * Sends int representing the number of
+     * Dominoes in a player's hand
+     * @return size of the playerHand array
+     */
+    public int getNumTiles(){
+        return playerHand.size();
+    }
+
+    /**
+     * Iterates over the player hand and adds the
+     * left and right values of each domino to a
+     * running total. This total is then returned.
+     * @return handval int representing the
+     * total value of the dominoes in a player's hand.
+     */
+    public int handVal(){
+        int handval = 0;
+        Iterator<Domino> iter = this.playerHand.iterator();
+        while(iter.hasNext()){
+            int add = iter.next().getTotalVal();
+            handval = handval + add;
+        }
+        return handval;
+    }
+
+    /**
+     * Retrieves the selected Domino object for checking
+     * @param index the value chosen by the player
+     * representing the selected domino
+     * @return Domino at the given index
+     */
+    public Domino getSelected(int index){
+        return playerHand.get(index);
+    }
+}

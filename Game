@@ -1,0 +1,328 @@
+import java.lang.reflect.Array;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Scanner;
+
+public class Game{
+
+    public Board playingArea = new Board();
+    public Scanner sc = new Scanner(System.in);
+    public boolean HUMAN_PASS = false;
+    public boolean COMP_PASS = false;
+
+    public Game(){
+
+    }
+
+
+    public void humanTurn(){
+        System.out.println("Human's turn");
+        System.out.println("[p] Play Domino");
+        System.out.println("[d] Draw from Boneyard");
+        System.out.println("[q] Quit");
+        String choice = sc.next();
+        if(choice.equals("p") || choice.equals("P")){
+            System.out.println("Which domino? (0 index)");
+            int domIndex = sc.nextInt();
+            Domino selected = playingArea.human.getSelected(domIndex);
+
+            System.out.println("Right or left? (l/r)");
+            String side = sc.next();
+
+            System.out.println("Rotate first? (y/n)");
+            String rotation = sc.next();
+            if(rotation.equals("y") || rotation.equals("Y")){
+                selected.rotateDomino();
+            }
+
+            if(playingArea.activeDominoes() == 0){
+                System.out.println("Playing " + selected.dToString());
+                playingArea.addDomino(selected, "first");
+                playingArea.human.removeDomino(domIndex);
+                int dC = playingArea.computer.getNumTiles();
+                int bC = playingArea.boneyard.getCurrDominoes();
+                System.out.println("Computer has " + dC + " dominoes");
+                System.out.println("Boneyard has " + bC + " dominoes");
+                System.out.println(playingArea.toStringBoard());
+                computerTurn();
+            }
+            else if(side.equals("l") || side.equals("L")){
+                boolean valid = validMove(selected, "l");
+                if(!valid){
+                    System.out.println("You can't do that! Try again");
+                    humanTurn();
+                }
+                else{
+                    HUMAN_PASS = false;
+                    playingArea.addDomino(selected, "left");
+                    System.out.println("Playing " +
+                            selected.dToString() + " on the left");
+                    playingArea.human.removeDomino(domIndex);
+                    int dC = playingArea.computer.getNumTiles();
+                    int dB = playingArea.boneyard.getCurrDominoes();
+                    System.out.println("Computer has " + dC + " dominoes");
+                    System.out.println("Boneyard has " + dB + " dominoes");
+                    System.out.println(playingArea.toStringBoard());
+                    computerTurn();
+                }
+            }
+            else if(side.equals("r") || side.equals("R")){
+                boolean valid = validMove(selected, "r");
+                if(!valid){
+                    System.out.println("YOu can't do that! Try again");
+                    humanTurn();
+                }
+                else{
+                    HUMAN_PASS = false;
+                    playingArea.addDomino(selected, "right");
+                    System.out.println("Playing " +
+                            selected.dToString() + " on the right");
+                    playingArea.human.removeDomino(domIndex);
+                    int dC = playingArea.computer.getNumTiles();
+                    int dB = playingArea.boneyard.getCurrDominoes();
+                    System.out.println("Computer has " + dC + " dominoes");
+                    System.out.println("Boneyard has " + dB + " dominoes");
+                    System.out.println(playingArea.toStringBoard());
+                    computerTurn();
+                }
+            }
+            else{
+                System.out.println("Invalid side!! Left or right only");
+                humanTurn();
+            }
+        }
+        else if(choice.equals("d") || choice.equals("D")){
+            /*
+            checks to see if there is a valid move, if there is
+            then we tell the player to play that move and return
+
+            else lets them draw and then returns, will not continue
+            drawing for the player to avoid big problems
+             */
+            if( validExist("human") ){
+                System.out.println("You have a valid move, can't draw from Boneyard");
+                humanTurn();
+            }
+            else if(playingArea.boneyard.getCurrDominoes() == 0){
+                System.out.println("There are no tiles in the boneyard!");
+                /*
+                from here i will check for previous computer pass and
+                if computer hasn't passed, then computer turn is called
+                 */
+                if(COMP_PASS == true){
+                    endGame();
+                }
+                else{
+                    HUMAN_PASS = true;
+                    computerTurn();
+                }
+            }
+            else{
+                /*
+                Removes a domino from the boneyard, adds it to player hand
+                Returns play to the human
+                 */
+                Domino toAdd = playingArea.boneyard.removeDomino();
+                playingArea.human.addDomino(toAdd);
+                humanTurn();
+            }
+        }
+        else if(choice.equals("q") || choice.equals("Q")){
+            System.exit(0);
+        }
+        else{
+            /*
+            this would trigger if there is a bug or if the player
+            chooses something other than the three options
+             */
+            System.out.println("That is an invalid selection!!");
+            humanTurn();
+        }
+    }
+
+    public void computerTurn(){
+        /*
+        iterate over the dominoes in hand to search for
+        valid domino play
+        if none, draws from the boneyard until a domino
+        can be played (consider recursion)
+        if no turns at end, then COMP_PASS is made true
+         */
+
+        boolean valid = validExist("computer");
+        if(valid){
+            System.out.println("Computer's turn");
+            COMP_PASS = false;
+            int size = playingArea.computer.playerHand.size();
+            Domino[] hand = playingArea.computer.playerHand.toArray(new Domino[size]);
+            for(int i = 0; i < size; i++){
+                if(validMove(hand[i], "left")){
+                    playingArea.addDomino(hand[i], "left");
+                    String domino = hand[i].dToString();
+                    System.out.println("Computer plays " + domino + " at the left");
+                    int dC = playingArea.computer.getNumTiles();
+                    System.out.println("Computer has " + dC + " dominoes");
+                    int bC = playingArea.boneyard.getCurrDominoes();
+                    System.out.println("Boneyard has " + bC + " dominoes");
+                    System.out.println(playingArea.toStringBoard());
+                    playingArea.computer.removeDomino(i);
+                    humanTurn();
+                }
+                else if(validMove(hand[i], "right")){
+                    playingArea.addDomino(hand[i], "right");
+                    String domino = hand[i].dToString();
+                    System.out.println("Computer plays " + domino + " at the right");
+                    int dC = playingArea.computer.getNumTiles();
+                    System.out.println("Computer has " + dC + " dominoes");
+                    int bC = playingArea.boneyard.getCurrDominoes();
+                    System.out.println("Boneyard has " + bC + " dominoes");
+                    System.out.println(playingArea.toStringBoard());
+                    playingArea.computer.removeDomino(i);
+                    humanTurn();
+                }
+            }
+        }
+        else if(playingArea.boneyard.getCurrDominoes() == 0){
+            if(HUMAN_PASS){
+                endGame();
+            }
+            else{
+                COMP_PASS = true;
+                humanTurn();
+            }
+        }
+        else{
+            Domino toAdd = playingArea.boneyard.removeDomino();
+            playingArea.computer.addDomino(toAdd);
+            computerTurn();
+        }
+    }
+
+    /**
+     * Called when there is no valid move for either
+     * player and there are no dominoes in the
+     * boneyard. Will not be called if player plays
+     * their last domino and there are no boneyard
+     * tiles. The player with the lowest value of
+     * tiles in their hand wins the game.
+     */
+    public void endGame(){
+        int humanTotal = playingArea.human.handVal();
+        int computerTotal = playingArea.computer.handVal();
+        System.out.println("Human final score: " + humanTotal);
+        System.out.println("Computer final score: " + computerTotal);
+
+        if(humanTotal > computerTotal){
+            System.out.println("Computer wins!!");
+        }
+        else if(humanTotal < computerTotal){
+            System.out.println("You win!! Congrats!!");
+        }
+        else{
+            System.out.println("Tie! No one wins, try again");
+        }
+    }
+
+    /**
+     * Compares the selected side of the board to the
+     * corresponding side of the domino. If they are the
+     * same value, then the play is valid. If either
+     * value is a zero, then the play is valid. Otherwise
+     * the play is deemed invalid.
+     * @param select the domino selected for play
+     * @param side the side of the board selected for play
+     * @return boolean representing whether or not the
+     * selected move is a valid one
+     */
+    public boolean validMove(Domino select, String side){
+        if(playingArea.activeDominoes() == 0){
+            /*
+            If there are no dominoes on the board, then
+            the human can play whatever domino
+             */
+            return true;
+        }
+        else if(side.equals("l")){
+            int left = playingArea.getLeft();
+            int leftComp = select.getRightNum();
+
+            if(left == 0 || leftComp == 0){
+                //0 is a wild card, can be played with any other number
+                return true;
+            }
+            else if(left == leftComp){
+                return true;
+            }
+            else return false;
+        }
+        else if(side.equals("r")){
+            int right = playingArea.getRight();
+            int rightComp = select.getLeftNum();
+
+            if(right == 0 || rightComp == 0){
+                return true;
+            }
+            else if(right == rightComp){
+                return true;
+            }
+            else return false;
+        }
+        return false;
+    }
+
+    /**
+     * Retrieves the value on the left and right side
+     * of the board. Then iterates over the dominoes
+     * in a player's hand and checks for any matches in
+     * the values. If there is a matching value or a zero,
+     * then the method returns true. Otherwise returns false.
+     * @param current the Player currently active
+     * @return boolean function representing whether
+     * or not there is a valid move in the current
+     * player's hand
+     */
+    public boolean validExist(String current){
+        int right = playingArea.getRight();
+        int left = playingArea.getLeft();
+
+        if(current.equals("computer")){
+            List hand = playingArea.computer.playerHand;
+            Iterator<Domino> iter = hand.iterator();
+
+            while(iter.hasNext()){
+                Domino dom = iter.next();
+                int numR = dom.getRightNum();
+                int numL = dom.getLeftNum();
+                if(numR == 0 || numL == 0){
+                    return true;
+                }
+                else if(numR == right || numL == right){
+                    return true;
+                }
+                else if(numL == left || numL == left){
+                    return true;
+                }
+            }
+        }
+        else if(current.equals("human")){
+            List hand = playingArea.human.playerHand;
+            Iterator<Domino> iter = hand.iterator();
+
+            while(iter.hasNext()){
+                Domino dom = iter.next();
+                int numR = dom.getRightNum();
+                int numL = dom.getLeftNum();
+                if(numR == 0 || numL == 0){
+                    return true;
+                }
+                else if(numR == right || numL == right){
+                    return true;
+                }
+                else if(numL == left || numL == left){
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+}

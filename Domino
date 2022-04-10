@@ -1,0 +1,45 @@
+public class Domino{
+
+    private int rightNum;
+    private int leftNum;
+    private int totalVal;
+
+    //constructor for domino object
+    public Domino(int rightNum, int leftNum){
+        this.leftNum = leftNum;
+        this.rightNum = rightNum;
+        this.totalVal = leftNum + rightNum;
+    }
+
+    public int getLeftNum() {
+        return leftNum;
+    }
+
+    public int getRightNum() {
+        return rightNum;
+    }
+
+    public int getTotalVal(){
+        return totalVal;
+    }
+
+    public void rotateDomino(){
+        int newLeft = rightNum;
+        int newRight = leftNum;
+        this.rightNum = newRight;
+        this.leftNum = newLeft;
+    }
+
+    /**
+     * Retrieves the left and right values of the
+     * domino and adds them to a string. The string
+     * is stylized with brackets and spaces
+     * @return String representation of the Domino
+     */
+    public String dToString(){
+        int right = getRightNum();
+        int left = getLeftNum();
+        String domino = "[ " + left + " | " + right + " ]";
+        return domino;
+    }
+}
